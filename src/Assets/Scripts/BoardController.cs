@@ -29,7 +29,7 @@ public class BoardController : MonoBehaviour
     public void Start()
     {
         ClearAll();
-       
+        
     }
 
 

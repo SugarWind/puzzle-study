@@ -48,7 +48,7 @@ public class PuyoController : MonoBehaviour
 
     public void SetPos(Vector3 pos)
     {
-        this.transform.position = pos;
+        this.transform.localPosition = pos;
     }
 }
 
