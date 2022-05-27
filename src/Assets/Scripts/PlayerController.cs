@@ -142,11 +142,11 @@ public class PlayerController : MonoBehaviour
             Translate(false);
         }
 
-        if (Input.GetKeyDown(KeyCode.X)) //âEâÒì]
+        if (Input.GetKeyDown(KeyCode.X)) 
         {
             Rotate(true);
         }
-        if (Input.GetKeyDown(KeyCode.Z)) //ç∂âÒì]
+        if (Input.GetKeyDown(KeyCode.Z)) 
         {
             Rotate(false);
         }
