@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    const float TRANS_TIME = 0.05f;
-    const float ROT_TIME = 0.05f;
+    const int TRANS_TIME = 3;
+    const int ROT_TIME = 3;
 
     enum RotState
     {
@@ -27,9 +27,13 @@ public class PlayerController : MonoBehaviour
     Vector2Int _last_position;
     RotState _last_rotate = RotState.Up;
 
+    LogicalInput logicalInput = new();
+
     // Start is called before the first frame update
     void Start()
     {
+        
+
         _puyoControllers[0].SetPuyoType(PuyoType.Green);
         _puyoControllers[1].SetPuyoType(PuyoType.Red);
 
@@ -56,7 +60,7 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
-    void SetTransition(Vector2Int pos, RotState rot, float time)
+    void SetTransition(Vector2Int pos, RotState rot, int time)
     {
         _last_position = _position;
         _last_rotate = _rotate;
@@ -136,44 +140,78 @@ public class PlayerController : MonoBehaviour
         gameObject.SetActive(false);
     }
 
+    static readonly KeyCode[] key_code_tbl = new KeyCode[(int)LogicalInput.Key.MAX]{
+        KeyCode.RightArrow,
+        KeyCode.LeftArrow,  
+        KeyCode.X,          
+        KeyCode.Z,          
+        KeyCode.UpArrow,   
+        KeyCode.DownArrow, 
+    };
+
+    
+    void UpdateInput()
+    {
+        LogicalInput.Key inputDev = 0;
+
+       
+        for (int i = 0; i < (int)LogicalInput.Key.MAX; i++)
+        {
+            if (Input.GetKey(key_code_tbl[i]))
+            {
+                inputDev |= (LogicalInput.Key)(1 << i);
+            }
+        }
+
+        logicalInput.Update(inputDev);
+    }
+
     // Update is called once per frame
     void Control()
     {
-        if (Input.GetKeyDown(KeyCode.RightArrow))
+        if (logicalInput.IsRepeat(LogicalInput.Key.Right))
         {
-            Translate(true);
+            if (Translate(true)) return;
         }
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        if (logicalInput.IsRepeat(LogicalInput.Key.Left))
         {
-            Translate(false);
-        }
-
-        if (Input.GetKeyDown(KeyCode.X)) 
-        {
-            Rotate(true);
-        }
-        if (Input.GetKeyDown(KeyCode.Z)) 
-        {
-            Rotate(false);
+            if (Translate(false)) return;
         }
 
-        if (Input.GetKey(KeyCode.UpArrow))
+        
+        if (logicalInput.IsTrigger(LogicalInput.Key.RotR))
+        {
+            if (Rotate(true)) return;
+        }
+        if (logicalInput.IsTrigger(LogicalInput.Key.RotL))
+        {
+            if (Rotate(false)) return;
+        }
+
+        
+        if (logicalInput.IsRelease(LogicalInput.Key.QuickDrop))
         {
             QuickDrop();
         }
     }
 
-    void Update()
+    void FixedUpdate()
     {
-        if(!_animationController.Update(Time.deltaTime))
+       
+        UpdateInput();
+
+        
+        if (!_animationController.Update())
         {
             Control();
         }
 
+       
         float anim_rate = _animationController.GetNormalized();
         _puyoControllers[0].SetPos(Interpolate(_position, RotState.Invalid, _last_position, RotState.Invalid, anim_rate));
         _puyoControllers[1].SetPos(Interpolate(_position, _rotate, _last_position, _last_rotate, anim_rate));
     }
+
 
     static Vector3 Interpolate(Vector2Int pos, RotState rot, Vector2Int pos_last, RotState rot_last, float rate)
     {
